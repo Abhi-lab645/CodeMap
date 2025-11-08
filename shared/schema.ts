@@ -10,11 +10,19 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   role: text("role").notNull().default("student"),
+  totalXp: integer("total_xp").notNull().default(0),
+  currentStreak: integer("current_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  lastActivityDate: timestamp("last_activity_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  totalXp: true,
+  currentStreak: true,
+  longestStreak: true,
+  lastActivityDate: true,
   createdAt: true,
 }).extend({
   email: z.string().email(),
@@ -92,6 +100,7 @@ export const badges = pgTable("badges", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   icon: text("icon").notNull(),
+  category: text("category").notNull().default("milestone"),
   requirement: integer("requirement").notNull(),
 });
 

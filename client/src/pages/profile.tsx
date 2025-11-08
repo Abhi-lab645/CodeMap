@@ -4,18 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BadgeCard } from "@/components/badge-card";
-import { Code2, LogOut, Award, TrendingUp, Target } from "lucide-react";
+import { Code2, LogOut, Award, TrendingUp, Target, Zap, Flame } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import type { UserProgress, Badge, UserBadge } from "@shared/schema";
+import type { UserProgress, Badge, UserBadge, User } from "@shared/schema";
 
 export default function Profile() {
   const [, navigate] = useLocation();
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+
+  const { data: user } = useQuery<Omit<User, 'password'>>({
+    queryKey: ["/api/auth/me"],
+    enabled: !!authUser,
+  });
 
   const { data: allProgress } = useQuery<UserProgress[]>({
     queryKey: ["/api/progress"],
-    enabled: !!user,
+    enabled: !!authUser,
   });
 
   const { data: badges } = useQuery<Badge[]>({
@@ -24,7 +29,7 @@ export default function Profile() {
 
   const { data: userBadges } = useQuery<UserBadge[]>({
     queryKey: ["/api/user-badges"],
-    enabled: !!user,
+    enabled: !!authUser,
   });
 
   const handleLogout = () => {
@@ -71,28 +76,62 @@ export default function Profile() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Mini Projects Completed
+                Total XP
               </CardTitle>
-              <Target className="h-4 w-4 text-primary" />
+              <Zap className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold" data-testid="text-total-xp">
+                {user?.totalXp || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Experience points
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-2 border-orange-500/20">
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Current Streak
+              </CardTitle>
+              <Flame className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold" data-testid="text-current-streak">
+                {user?.currentStreak || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Days in a row
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Completed
+              </CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold" data-testid="text-completed-count">
                 {totalCompleted}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Keep up the great work!
+                Mini projects
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Projects Started
+                Projects
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -101,15 +140,15 @@ export default function Profile() {
                 {allProgress?.length || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Active learning paths
+                In progress
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Badges Earned
+                Badges
               </CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -118,7 +157,7 @@ export default function Profile() {
                 {userBadges?.length || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Achievements unlocked
+                Unlocked
               </p>
             </CardContent>
           </Card>

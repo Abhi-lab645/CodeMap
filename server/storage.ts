@@ -28,6 +28,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
 
   // Big Project methods
   getAllBigProjects(): Promise<BigProject[]>;
@@ -85,12 +86,25 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
-      ...insertUser, 
+      ...insertUser,
+      role: insertUser.role || "student",
       id,
+      totalXp: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActivityDate: null,
       createdAt: new Date(),
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updated = { ...user, ...updates };
+    this.users.set(id, updated);
+    return updated;
   }
 
   // Big Project methods
@@ -122,7 +136,12 @@ export class MemStorage implements IStorage {
 
   async createMiniProject(insertMiniProject: InsertMiniProject): Promise<MiniProject> {
     const id = randomUUID();
-    const miniProject: MiniProject = { ...insertMiniProject, id };
+    const miniProject: MiniProject = { 
+      ...insertMiniProject, 
+      id,
+      expectedOutput: insertMiniProject.expectedOutput || null,
+      dependencies: insertMiniProject.dependencies || [],
+    };
     this.miniProjects.set(id, miniProject);
     return miniProject;
   }
@@ -145,6 +164,8 @@ export class MemStorage implements IStorage {
     const progress: UserProgress = {
       ...insertProgress,
       id,
+      completedMiniIds: insertProgress.completedMiniIds || [],
+      currentMiniId: insertProgress.currentMiniId || null,
       startedAt: new Date(),
       lastActivityAt: new Date(),
     };
@@ -176,7 +197,11 @@ export class MemStorage implements IStorage {
 
   async createBadge(insertBadge: InsertBadge): Promise<Badge> {
     const id = randomUUID();
-    const badge: Badge = { ...insertBadge, id };
+    const badge: Badge = { 
+      ...insertBadge, 
+      id,
+      category: insertBadge.category || "milestone",
+    };
     this.badges.set(id, badge);
     return badge;
   }
@@ -319,14 +344,23 @@ export class MemStorage implements IStorage {
 
   private createMiniProjectSync(miniProject: InsertMiniProject): MiniProject {
     const id = randomUUID();
-    const mini: MiniProject = { ...miniProject, id };
+    const mini: MiniProject = { 
+      ...miniProject, 
+      id,
+      expectedOutput: miniProject.expectedOutput || null,
+      dependencies: miniProject.dependencies || [],
+    };
     this.miniProjects.set(id, mini);
     return mini;
   }
 
   private createBadgeSync(badge: InsertBadge): Badge {
     const id = randomUUID();
-    const b: Badge = { ...badge, id };
+    const b: Badge = { 
+      ...badge, 
+      id,
+      category: badge.category || "milestone",
+    };
     this.badges.set(id, b);
     return b;
   }
@@ -416,6 +450,15 @@ export class DbStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const result = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
     return result[0];
   }
 

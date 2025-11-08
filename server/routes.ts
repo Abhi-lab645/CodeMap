@@ -38,6 +38,20 @@ declare global {
 export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== Authentication Routes ====================
   
+  app.get("/api/auth/me", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.userId;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to fetch user" });
+    }
+  });
+  
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
@@ -210,6 +224,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           completedMiniIds: [...progress.completedMiniIds, miniProjectId],
           currentMiniId: miniProject.miniId + 1,
         });
+
+        // Award XP for completing mini-project (100 XP per mini-project)
+        const user = await storage.getUser(userId);
+        if (user) {
+          const xpEarned = 100;
+          
+          // Calculate streak
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          let newStreak = 1;
+          let newLongestStreak = user.longestStreak;
+          
+          if (user.lastActivityDate) {
+            const lastActivity = new Date(user.lastActivityDate);
+            lastActivity.setHours(0, 0, 0, 0);
+            const daysSinceLastActivity = Math.floor((today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (daysSinceLastActivity === 0) {
+              newStreak = user.currentStreak;
+            } else if (daysSinceLastActivity === 1) {
+              newStreak = user.currentStreak + 1;
+            }
+          }
+          
+          if (newStreak > newLongestStreak) {
+            newLongestStreak = newStreak;
+          }
+          
+          await storage.updateUser(userId, {
+            totalXp: user.totalXp + xpEarned,
+            currentStreak: newStreak,
+            longestStreak: newLongestStreak,
+            lastActivityDate: new Date(),
+          });
+        }
 
         // Check for badge unlocks
         const completedCount = updatedProgress!.completedMiniIds.length;
