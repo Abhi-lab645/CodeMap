@@ -13,7 +13,9 @@ CodeMap is a web-based educational platform that teaches programming through pro
 
 ## Recent Changes
 
-**November 8, 2025 - Critical Auth & Navigation Fixes:**
+**November 8, 2025 - Production Features Complete:**
+- **Database Migration**: Replaced in-memory storage with PostgreSQL using Drizzle ORM. All data now persists across sessions.
+- **AI Tutor Integration**: Implemented real OpenAI GPT-4 integration with context-aware programming assistance. Supports markdown rendering, code highlighting, and graceful fallback handling.
 - Added ProtectedRoute component to guard authenticated pages (Dashboard, Theory, Workspace, Profile)
 - Implemented 401 error handling in queryClient to clear expired tokens and redirect to /auth
 - Fixed broken navigation links (removed invalid /dashboard route from header)

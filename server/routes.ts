@@ -265,20 +265,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tutor", async (req, res) => {
     try {
       const validatedData = aiTutorMessageSchema.parse(req.body);
+      const { message, context } = validatedData;
       
-      const responses = [
-        "Great question! Let me help you understand this concept better. Start by breaking down the problem into smaller steps.",
-        "That's a common challenge! Try reviewing the examples in the theory section - they contain patterns you can apply here.",
-        "Good thinking! Remember to consider edge cases and test your code thoroughly.",
-        "Excellent progress! If you're stuck, try console.log (or print) to debug your values step by step.",
-        "Keep going! This concept builds on what you learned in the previous mini projects.",
-      ];
+      // Build context-aware system prompt
+      let systemPrompt = `You are an expert programming tutor for CodeMap, a learning platform where students master coding through mini-projects. Your role is to:
 
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+1. Help students understand programming concepts through clear explanations
+2. Guide them through challenges without giving direct solutions
+3. Encourage problem-solving and debugging skills
+4. Provide hints and examples that lead to understanding
+5. Be encouraging and supportive while maintaining high educational standards
 
-      res.json({ reply: randomResponse });
+Keep responses concise (2-4 paragraphs max). Use code examples when helpful, formatted in markdown with proper syntax highlighting.`;
+
+      // Add context if available
+      if (context?.bigProjectId && context?.miniProjectId) {
+        try {
+          const miniProject = await storage.getMiniProject(context.miniProjectId);
+          if (miniProject) {
+            systemPrompt += `\n\nCurrent Context:
+- Student is working on: "${miniProject.title}"
+- Key concepts: ${miniProject.concepts.join(", ")}
+- Task: ${miniProject.taskDescription.substring(0, 200)}...`;
+          }
+        } catch (err) {
+          console.error("Error fetching mini project context:", err);
+        }
+      }
+
+      // Call OpenAI API
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+
+      res.json({ reply });
     } catch (error: any) {
-      res.status(400).json({ message: error.message || "Failed to get tutor response" });
+      console.error("AI Tutor error:", error);
+      
+      // Fallback responses if OpenAI fails
+      if (error.code === "insufficient_quota" || error.status === 429) {
+        res.json({ 
+          reply: "The AI Tutor is currently unavailable due to high demand. Please try these resources:\n\n1. Review the theory section and examples\n2. Check the hints section for guidance\n3. Try breaking the problem into smaller steps\n4. Use console.log() or print() to debug your code" 
+        });
+      } else {
+        res.status(500).json({ message: error.message || "Failed to get tutor response" });
+      }
     }
   });
 
