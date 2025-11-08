@@ -1,0 +1,244 @@
+🚀 You are an expert full-stack developer. Build a complete web platform called “CodeMap” — a learning platform where students learn programming by building one big project broken into hundreds of mini-projects.
+
+The platform should include both frontend and backend (React + Node.js/Express + MongoDB).
+
+Implement all the following features, structure, and components in detail.
+
+Goal: Students pick a big project, learn its concepts step-by-step, and build it through 300–500 mini projects. Each mini project has a short theory + examples section before coding.
+
+🎨 Frontend Requirements (React + TailwindCSS)
+1. 🏠 Landing Page
+
+Modern UI/UX with glassmorphism or neumorphism design.
+
+Header: Logo (CodeMap), “Explore Projects”, “Dashboard”, “About”, “Login/Signup”.
+
+Hero Section:
+“Learn Programming by Building Real Projects — One Mini Project at a Time.”
+CTA Buttons → “Start Learning” / “Browse Projects”.
+
+Animated background with icons of programming languages (Python, JS, C++, etc.).
+
+Cards showing popular big projects (E-commerce, Chatbot, Social App, etc.).
+
+2. 🔐 Authentication (Login / Signup)
+
+Email & password-based authentication.
+
+Role-based (Student, Admin).
+
+JWT or Firebase Auth integration.
+
+3. 📘 Big Project Selection Page
+
+List of all available Big Projects for each language.
+
+Each card shows:
+
+Project title
+
+Language used
+
+Difficulty (Beginner/Intermediate/Advanced)
+
+Total Mini Projects (e.g., 450)
+
+“Start Learning” button
+
+4. 🧩 Learning Dashboard (Core Page)
+
+Shows the learning path for the chosen Big Project.
+
+Divided into modules (Mini Projects 1–500).
+
+Each mini project has:
+
+Title
+
+Concepts covered
+
+Status (Locked / In Progress / Completed)
+
+Progress bar showing completion percentage.
+
+5. 📖 Theory + Examples Page (Before Each Mini Project)
+
+Beautiful card layout explaining:
+
+Topic name
+
+Theory in short paragraphs
+
+3–5 code examples
+
+Interactive code editor (Monaco Editor)
+
+“Proceed to Mini Project” button.
+
+6. 💻 Mini Project Workspace
+
+Embedded code editor and live output panel.
+
+Description of the mini project.
+
+Steps to complete it.
+
+Hints section.
+
+“Mark as Completed” button.
+
+Integration showing how this mini project connects to previous ones in the big project.
+
+7. 🧱 Project Integration Page
+
+Visualization that shows how each completed mini project fits into the overall big project (like Lego pieces forming one big app).
+
+Flowchart or module map visualization.
+
+8. 🧠 AI Tutor Placeholder
+
+Chatbox UI on every theory and project page.
+
+Placeholder text: “Ask CodeMap Tutor anything…”
+
+(Later can integrate GPT API for real-time learning assistant).
+
+9. 📊 Profile + Progress Tracking
+
+Shows total mini projects completed.
+
+Badges for milestones (25%, 50%, 100%).
+
+Leaderboard of top learners.
+
+Downloadable “Project Completion Certificate”.
+
+10. 📱 Responsive Design
+
+Mobile-friendly layout with sidebar menu.
+
+Floating progress and “Ask Tutor” button for small screens.
+
+⚙️ Backend Requirements (Node.js + Express + MongoDB)
+1. 🧑‍💻 User Management
+
+Routes for signup, login, JWT verification.
+
+Store user info, progress, completed projects.
+
+2. 🗂️ Big Project Management
+
+Schema:
+{ title, language, difficulty, totalMiniProjects, description, modules: [ { title, theory, examples, projectDetails } ] }
+
+Admin routes to add/edit/delete Big Projects.
+
+3. 📘 Theory + Example API
+
+Fetch theory and examples for each mini project via /api/theory/:projectId/:miniId.
+
+4. 💻 Mini Project Management
+
+Schema for each mini project:
+
+{
+  projectId,
+  miniId,
+  title,
+  concepts,
+  theory,
+  examples,
+  taskDescription,
+  hint,
+  status
+}
+
+
+Endpoints to:
+
+Fetch all mini projects by Big Project ID.
+
+Update completion status per user.
+
+5. 📊 Progress Tracking API
+
+Track:
+
+Completed mini projects
+
+Overall percentage
+
+Badges/unlocks
+
+Endpoint: /api/progress/:userId
+
+6. 🧱 Integration Map API
+
+Returns data for visualizing the flow of connected mini projects.
+
+7. 🧠 AI Tutor Placeholder API
+
+Simple mock endpoint /api/tutor that returns pre-defined answers (for now).
+
+Later, integrate with OpenAI GPT or Replit AI API.
+
+🧩 Database Models (MongoDB)
+
+User: name, email, password, progress, completedProjects.
+
+BigProject: title, language, description, totalMiniProjects.
+
+MiniProject: projectId, miniId, title, theory, examples, codeTemplate.
+
+Progress: userId, projectId, completedMiniIds[], badges[].
+
+⚡ Additional Features
+
+Gamification: XP points, badges, streaks.
+
+Certificate Generator: Creates downloadable PDF with name + project title.
+
+Search & Filter: Filter big projects by difficulty, language, or tags.
+
+Dark/Light Mode toggle.
+
+Replit-style code runner (use iframe or sandbox).
+
+🧱 Tech Stack
+Layer	Technology
+Frontend	React + TailwindCSS + Vite
+State Mgmt	Redux Toolkit / Context API
+Backend	Node.js + Express
+Database	MongoDB Atlas
+Auth	JWT
+Editor	Monaco Editor
+Hosting	Replit / Vercel
+AI Tutor (Future)	OpenAI GPT API
+📦 Folder Structure Example
+/codemap
+ ├── client (React Frontend)
+ │    ├── src
+ │    │   ├── components
+ │    │   ├── pages
+ │    │   ├── utils
+ │    │   └── App.jsx
+ │    └── package.json
+ ├── server (Node.js Backend)
+ │    ├── models
+ │    ├── routes
+ │    ├── controllers
+ │    └── server.js
+ └── package.json
+🧠 Final Output Expectation
+
+When the project runs:
+
+Users can log in, select a big project.
+
+View theory + examples for each mini project.
+
+Code the mini project in browser.
+
+See progress grow.
+
+Finally complete the big project.
